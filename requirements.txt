@@ -1,0 +1,3 @@
+# ~~~ Just Bot Things ~~~
+tweepy==3.5.0
+
