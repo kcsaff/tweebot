@@ -11,9 +11,16 @@ Directives = namedtuple('Directives', ['filename', 'directive'])
 DEFAULT_DIRECTIVE = ']'
 
 
+import pkg_resources
+try:
+    VERSION = pkg_resources.require("tweebot")[0].version
+except:
+    VERSION = 'DEV'
+
+
 def make_parser(parser=None, subparsers=None):
     if parser is None:
-        parser = argparse.ArgumentParser('Tweebot: A simple twitter bot')
+        parser = argparse.ArgumentParser('Tweebot: A simple twitter bot (v {})'.format(VERSION))
     if subparsers is None:
         subparsers = parser.add_subparsers()
 
@@ -24,6 +31,9 @@ def make_parser(parser=None, subparsers=None):
     parser.add_argument(
         '--verbose', '-v', action='count',
         help='More v\'s, more verbose'
+    )
+    parser.add_argument(
+        '--version',
     )
 
     tweet_parser = subparsers.add_parser('tweet', help='Tweet a status update')
