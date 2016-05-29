@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 from pip.req import parse_requirements
 from pip.download import PipSession
 
-version = '0.2.0'
+version = '0.2.1'
 
 def read(f):
     return open(os.path.join(os.path.dirname(__file__), f)).read().strip()
