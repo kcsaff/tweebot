@@ -1,3 +1,4 @@
+import json
 
 
 CONSUMER_KEY = "CONSUMER_KEY"
@@ -29,12 +30,22 @@ class TwitterKeys(object):
                 ACCESS_KEY: vjhbv99889
                 ACCESS_SECRET: ivfjslfiguhg98
 
+        (Or the equivalent in JSON)
         """
         with open(keys_filename, 'r') as f:
-            for line in f:
+            data = f.read().strip()
+        if data.startswith('{'):
+            self.__dict__.update({
+                '_'.join(key.strip().upper().split()): value.strip()
+                for key, value in json.loads(data).items()
+            })
+        else:
+            for line in data.splitlines(False):
                 if ':' in line:
                     key, value = line.strip().split(':', 1)
-                    self.__dict__['_'.join(key.strip().upper().split())] = value.strip()
+                    self.__dict__[
+                        '_'.join(key.strip().strip('{}",').strip().upper().split())
+                    ] = value.strip().strip('{}",').strip()
 
         missing = 0
         for key in self.REQUIRED_KEYS:
