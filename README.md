@@ -59,15 +59,15 @@ that will generate your status updates.
 
 ### tweebot.main
 
-If you provide a generator method to `tweebot.main`, then tweebot will use it as a callback when the main function is
+If you provide a callable to `tweebot.main`, then tweebot will use it as a callback when the main function is
 called.  The main method implements all the command-line tweebot arguments, the difference is that if the program
-is asked to `tweet` an empty status, it will instead tweet the results of your generator method, called with no
-arguments.  If you `tweet` a non-empty status, that string will be handed to your generator, and the result will
+is asked to `tweet` an empty status, it will instead tweet the results of your method, called with no
+arguments.  If you `tweet` a non-empty status, that string will be handed to your method, and the result will
 be tweeted.
 
 `mytweebot --keys {twitter-key-file} tweet -vv`
 
-Thus, this provides a simple way to define new twitter-bots: define a generator method of the form:
+Thus, this provides a simple way to define new twitter-bots: define a method of the form:
 
 ```
 def my_generator(status, directives):
