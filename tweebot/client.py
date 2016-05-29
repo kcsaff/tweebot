@@ -1,3 +1,5 @@
+import imghdr
+import io
 import subprocess
 import os.path
 import tweepy
@@ -28,7 +30,7 @@ class TwitterClient(object):
             self.__api = tweepy.API(auth)
         return self.__api
 
-    def autofollow(self, follow=True, unfollow=True):
+    def autofollow(self, follow: bool = True, unfollow: bool = True):
         if not (follow or unfollow):
             return
         followers = set(tweepy.Cursor(self.twitter.followers_ids).items())
@@ -56,7 +58,18 @@ class TwitterClient(object):
 
         return followed, unfollowed
 
-    def tweet(self, status=None, filename=None):
+    def tweet(self,
+              status: str = None,
+              filename: str = None,
+              image: bytes = None
+      ):
+        """Tweet a status update with, optionally, an image.
+
+        :param status: Status string to tweet.
+        :param filename: Filename of an image to tweet.
+        :param bytes: Bytes of an image to tweet, may use instead of filename.
+        :return: None
+        """
         if status is None and self.default_status is not None:
             status = self.default_status() if callable(self.default_status) else self.default_status
 
@@ -70,7 +83,16 @@ class TwitterClient(object):
         else:
             kwargs = dict()
 
-        if filename:
+        if image:
+            if not filename:
+                filename = 'tweet.{}'.format(imghdr.what(None, h=image))
+            kwargs.update(file=io.BytesIO(image))
+            with self.__console.timed(
+                    'Updating twitter status ({}kb)...'.format(os.path.getsize(filename) // 1024),
+                    'Updated status in {0:.3f}s'
+            ):
+                self.twitter.update_with_media(filename, **kwargs)
+        elif filename:
             filename = self._resize(filename)
 
             with self.__console.timed(
