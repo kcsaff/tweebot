@@ -20,7 +20,10 @@ except:
 
 def make_parser(parser=None, subparsers=None):
     if parser is None:
-        parser = argparse.ArgumentParser('Tweebot: A simple twitter bot (v {})'.format(VERSION))
+        parser = argparse.ArgumentParser(
+            description='Tweebot: A simple twitter bot\n  Version {}'.format(VERSION),
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
     if subparsers is None:
         subparsers = parser.add_subparsers()
 
@@ -33,7 +36,8 @@ def make_parser(parser=None, subparsers=None):
         help='More v\'s, more verbose'
     )
     parser.add_argument(
-        '--version',
+        '--version', action='store_true',
+        help='Print version ({}) and exit'.format(VERSION)
     )
 
     tweet_parser = subparsers.add_parser('tweet', help='Tweet a status update')
@@ -50,7 +54,7 @@ def make_parser(parser=None, subparsers=None):
         help='User ids to follow'
     )
     follow_parser.add_argument(
-        '--auto', '-A', type=bool, action='store_true',
+        '--auto', '-A', action='store_true',
         help='Auto-follow your followers, unfollow unfollowers'
     )
     follow_parser.set_defaults(handler=do_follow)
@@ -159,8 +163,13 @@ def main(
 ):
     parser = make_parser()
     args = parser.parse_args()
+    if args.version:
+        print(VERSION)
+        return
     if callable(generators):
         generators = [generators]
 
     parser.handler(args, generators)
 
+if __name__ == '__main__':
+    main()
