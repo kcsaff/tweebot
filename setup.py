@@ -8,9 +8,6 @@ version = '0.1.2'
 def read(f):
     return open(os.path.join(os.path.dirname(__file__), f)).read().strip()
 
-install_reqs = parse_requirements('requirements.txt', session=PipSession())
-reqs = [str(ir.req) for ir in install_reqs]
-
 setup(name='tweebot',
       version=version,
       description='A simple twitter-bot command-line tool and library',
@@ -24,7 +21,9 @@ setup(name='tweebot',
       url='https://github.com/kcsaff/tweebot',
       license='MIT',
       packages=find_packages(),
-      install_requires=reqs,
+      install_requires=[
+          'tweepy>=3.5.0'
+      ],
       entry_points={
           'console_scripts': ['tweebot = tweebot:main']
       },
