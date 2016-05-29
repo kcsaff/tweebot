@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 from pip.req import parse_requirements
 from pip.download import PipSession
 
-version = '0.1.1'
+version = '0.1.2'
 
 def read(f):
     return open(os.path.join(os.path.dirname(__file__), f)).read().strip()
@@ -14,7 +14,7 @@ reqs = [str(ir.req) for ir in install_reqs]
 setup(name='tweebot',
       version=version,
       description='A simple twitter-bot command-line tool and library',
-#      long_description='\n\n'.join((read('README.md'), read('CHANGELOG'))),
+      long_description='\n\n'.join((read('README.md'), read('CHANGELOG'))),
       classifiers=[
           'License :: OSI Approved :: MIT License',
           'Intended Audience :: Other Audience',
