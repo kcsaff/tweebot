@@ -5,17 +5,17 @@ from tweebot.client import TwitterClient
 from tweebot.console import Console
 
 
-Directives = namedtuple('Directives', ['filename', 'directive'])
-
-
-DEFAULT_DIRECTIVE = ']'
-
-
 import pkg_resources
 try:
     VERSION = pkg_resources.require("tweebot")[0].version
 except:
     VERSION = 'DEV'
+
+
+Directives = namedtuple('Directives', ['filename', 'directive'])
+
+
+DEFAULT_DIRECTIVE = ']'
 
 
 def make_parser(parser=None, subparsers=None):

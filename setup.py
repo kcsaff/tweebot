@@ -1,7 +1,5 @@
 import os
 from setuptools import setup, find_packages
-from pip.req import parse_requirements
-from pip.download import PipSession
 
 version = '0.2.1'
 
