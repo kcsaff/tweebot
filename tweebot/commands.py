@@ -158,9 +158,7 @@ def do_follow(args, generator=None):
         client.autofollow()
 
 
-def main(
-        generators=()
-):
+def main(generators=()):
     parser = make_parser()
     args = parser.parse_args()
     if args.version:
@@ -169,7 +167,8 @@ def main(
     if callable(generators):
         generators = [generators]
 
-    parser.handler(args, generators)
+    args.handler(args, generators)
+
 
 if __name__ == '__main__':
     main()

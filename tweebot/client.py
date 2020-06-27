@@ -7,10 +7,10 @@ from tweebot.console import Console
 from tweebot.keys import TwitterKeys
 
 
-TWITTER_FILESIZE_LIMIT = 2999000 # About 3 Meg, we round down
+TWITTER_FILESIZE_LIMIT = 2999000  # About 3 Meg, we round down
 
 
-TWITTER_FILESIZE_LIMIT = 2999000 # About 3 Meg, we round down
+TWITTER_FILESIZE_LIMIT = 2999000  # About 3 Meg, we round down
 NEW_FILESIZE_LIMIT = '1999kb'
 OUT_FILENAME = 'out.png'
 JPG_FILENAME = 'out{}.jpg'
@@ -18,8 +18,8 @@ JPG_FILENAME = 'out{}.jpg'
 
 class TwitterClient(object):
     def __init__(self, keys, console=None):
-        self.__keys = TwitterKeys.of(keys)
         self.__console = Console.of(console)
+        self.__keys = TwitterKeys.of(keys)
         self.__api = None
 
     @property
@@ -31,10 +31,20 @@ class TwitterClient(object):
         return self.__api
 
     def autofollow(self, follow: bool = True, unfollow: bool = True):
+        """
+        Attempt to follow new followers and/or unfollow unfollowers.
+
+        Current limitations: only fetches the first page of users, about 50, and may be a bit
+        unpredictable past that point.
+
+        :param follow: Set to follow new followers (default True)
+        :param unfollow: Set to unfollow new unfollowers (default True)
+        :return:
+        """
         if not (follow or unfollow):
-            return
-        followers = set(tweepy.Cursor(self.twitter.followers_ids).items())
-        friends = set(tweepy.Cursor(self.twitter.friends_ids).items())
+            return (), ()
+        followers = set(tweepy.Cursor(self.api.followers_ids).items())
+        friends = set(tweepy.Cursor(self.api.friends_ids).items())
         print(followers)
         print(friends)
 
@@ -51,32 +61,26 @@ class TwitterClient(object):
             unfollowed = set()
 
         for user_id in followed:
-            self.twitter.create_friendship(user_id)
+            self.api.create_friendship(user_id)
 
         for user_id in unfollowed:
-            self.twitter.destroy_friendship(user_id)
+            self.api.destroy_friendship(user_id)
 
         return followed, unfollowed
 
     def tweet(self,
               status: str = None,
               filename: str = None,
-              image: bytes = None
-      ):
+              image: bytes = None):
         """Tweet a status update with, optionally, an image.
 
         :param status: Status string to tweet.
         :param filename: Filename of an image to tweet.
-        :param bytes: Bytes of an image to tweet, may use instead of filename.
+        :param image: Bytes of an image to tweet, may use instead of filename.
         :return: None
         """
         if status is None and self.default_status is not None:
             status = self.default_status() if callable(self.default_status) else self.default_status
-
-        if not self.args or not self.args.keys:
-            if self.verbose > 0:
-                print('No twitter keys registered, pipeline stopping')
-            return
 
         if status:
             kwargs = dict(status=status)
@@ -91,7 +95,7 @@ class TwitterClient(object):
                     'Updating twitter status ({}kb)...'.format(os.path.getsize(filename) // 1024),
                     'Updated status in {0:.3f}s'
             ):
-                self.twitter.update_with_media(filename, **kwargs)
+                self.api.update_with_media(filename, **kwargs)
         elif filename:
             filename = self._resize(filename)
 
@@ -99,9 +103,9 @@ class TwitterClient(object):
                 'Updating twitter status ({}kb)...'.format(os.path.getsize(filename) // 1024),
                 'Updated status in {0:.3f}s'
             ):
-                self.twitter.update_with_media(filename, **kwargs)
+                self.api.update_with_media(filename, **kwargs)
         elif status:
-            self.twitter.update_status(**kwargs)
+            self.api.update_status(**kwargs)
         else:
             raise RuntimeError('Tweet requires status or filename')
 

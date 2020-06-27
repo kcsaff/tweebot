@@ -20,7 +20,7 @@ class TwitterKeys(object):
         else:
             return cls(obj)
 
-    def __init__(self, keys_filename):
+    def __init__(self, keys_filename: str):
         """
         Take the filename where you're storing your keys (since you shouldn't do that here.)
         This is just a file that looks like:
@@ -32,6 +32,8 @@ class TwitterKeys(object):
 
         (Or the equivalent in JSON)
         """
+        if keys_filename is None:
+            raise RuntimeError('No twitter keys registered, pipeline stopping')
         with open(keys_filename, 'r') as f:
             data = f.read().strip()
         if data.startswith('{'):
