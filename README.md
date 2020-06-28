@@ -47,6 +47,9 @@ ACCESS_SECRET: ivfjslfiguhg98
 
 *OR* the equivalent JSON.
 
+Note that Twitter also calls the consumer key the app's API key,
+and likewise the consumer secret is the app's API secret key.
+
 The filename must be provided using the ``--keys`` command-line argument.
 
 Command-line usage

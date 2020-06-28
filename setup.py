@@ -26,7 +26,8 @@ setup(name='tweebot',
       license='MIT',
       packages=find_packages(),
       install_requires=[
-          'tweepy>=3.5.0'
+          'requests>=2.24.0',
+          'tweepy>=3.8.0'
       ],
       entry_points={
           'console_scripts': ['tweebot = tweebot:main']

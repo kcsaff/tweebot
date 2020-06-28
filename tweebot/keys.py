@@ -9,7 +9,7 @@ ACCESS_SECRET = "ACCESS_SECRET"
 
 class TwitterKeys(object):
     """
-    Reads / holds keys required by twitter
+    Reads / holds keys required for the standard Twitter developer API
     """
     REQUIRED_KEYS = (CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET)
 

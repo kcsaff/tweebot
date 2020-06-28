@@ -6,7 +6,12 @@ clock = time.perf_counter
 
 
 class Console(object):
-    def __init__(self, verbosity=1, print=print):
+    """
+    Wrapper for a print statement to keep track of verbosity.
+    """
+    def __init__(self, verbosity=None, print=print):
+        if verbosity is None:
+            verbosity = 1
         self.verbosity = verbosity
         self.__print = print
 
@@ -24,7 +29,7 @@ class Console(object):
             raise NotImplementedError
 
     def __getitem__(self, verbosity):
-        return Console(self.verbosity + verbosity, self.__print)
+        return Console(self.verbosity - verbosity, self.__print)
 
     def __bool__(self):
         return self.verbosity > 0

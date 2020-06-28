@@ -17,6 +17,8 @@ Directives = namedtuple('Directives', ['filename', 'directive'])
 
 DEFAULT_DIRECTIVE = ']'
 
+# Set up argument parser
+
 
 def make_parser(parser=None, subparsers=None):
     if parser is None:
@@ -29,7 +31,11 @@ def make_parser(parser=None, subparsers=None):
 
     parser.add_argument(
         '--keys', '-k', type=str,
-        help='Keys file needed to post to Twitter',
+        help='Keys file needed for most Twitter APIs',
+    )
+    parser.add_argument(
+        '--headers', type=str,
+        help='Headers file needed for specialized Twitter APIs (such as polls)',
     )
     parser.add_argument(
         '--verbose', '-v', action='count',
@@ -43,6 +49,14 @@ def make_parser(parser=None, subparsers=None):
     tweet_parser = subparsers.add_parser('tweet', help='Tweet a status update')
     _make_pipeline_parser(tweet_parser, 'tweet')
     tweet_parser.set_defaults(handler=do_tweet)
+
+    poll_parser = subparsers.add_parser('poll', help='Tweet out a poll')
+    _make_pipeline_parser(poll_parser, 'poll', status_nargs=1)
+    poll_parser.add_argument(
+        'choices', type=str, nargs='+',
+        help='Poll choices'
+    )
+    poll_parser.set_defaults(handler=do_poll)
 
     print_parser = subparsers.add_parser('print', help='Print a status update without sending -- can be piped')
     _make_pipeline_parser(print_parser, 'print')
@@ -62,9 +76,9 @@ def make_parser(parser=None, subparsers=None):
     return parser
 
 
-def _make_pipeline_parser(parser, verb):
+def _make_pipeline_parser(parser, verb, status_nargs='*'):
     parser.add_argument(
-        'status', type=str, nargs='*',
+        'status', type=str, nargs=status_nargs,
         help='Text status to {verb}: "enclose multiple words in quotes", use - to pipe input'
         .format(verb=verb)
     )
@@ -82,6 +96,7 @@ def _make_pipeline_parser(parser, verb):
 def loads_status(status, directives):
     """
     Returns status and dict of directives from status string and directive info.
+    The purpose of this is to allow passing metadata, escaped with the 'directive' symbol, within the status.
 
     :param args:  Parsed args
     :return: tuple of (status string, directive dict)
@@ -138,11 +153,21 @@ def generate_status(args, generators=()):
     return status, directives
 
 
+# Handlers for each subparser
+
+
 def do_tweet(args, generators=()):
     status, directives = generate_status(args, generators)
 
     client = TwitterClient(args.keys, console=Console(args.verbose))
     client.tweet(status, filename=directives.filename)
+
+
+def do_poll(args, generators=()):
+    status, directives = generate_status(args, generators)
+
+    client = TwitterClient(args.keys, console=Console(args.verbose), headers=args.headers)
+    client.poll(status, *args.choices)
 
 
 def do_print(args, generators=()):
@@ -156,6 +181,9 @@ def do_follow(args, generator=None):
         raise NotImplementedError('Haven\'t implemented individual follows yet')
     if args.auto:
         client.autofollow()
+
+
+# MAIN
 
 
 def main(generators=()):

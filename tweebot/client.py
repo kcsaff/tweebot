@@ -3,6 +3,7 @@ import io
 import subprocess
 import os.path
 import tweepy
+from tweebot.cardclient import CardClient
 from tweebot.console import Console
 from tweebot.keys import TwitterKeys
 
@@ -17,9 +18,10 @@ JPG_FILENAME = 'out{}.jpg'
 
 
 class TwitterClient(object):
-    def __init__(self, keys, console=None):
+    def __init__(self, keys, console=None, headers=None):
         self.__console = Console.of(console)
         self.__keys = TwitterKeys.of(keys)
+        self.__card_api = CardClient(headers)
         self.__api = None
 
     @property
@@ -27,7 +29,10 @@ class TwitterClient(object):
         if self.__api is None:
             auth = tweepy.OAuthHandler(self.__keys.CONSUMER_KEY, self.__keys.CONSUMER_SECRET)
             auth.set_access_token(self.__keys.ACCESS_KEY, self.__keys.ACCESS_SECRET)
-            self.__api = tweepy.API(auth)
+            api = tweepy.API(auth)
+            me = api.me()
+            self.__console.print(f'Connected as @{me.screen_name}: "{me.name}"')
+            self.__api = api
         return self.__api
 
     def autofollow(self, follow: bool = True, unfollow: bool = True):
@@ -45,26 +50,28 @@ class TwitterClient(object):
             return (), ()
         followers = set(tweepy.Cursor(self.api.followers_ids).items())
         friends = set(tweepy.Cursor(self.api.friends_ids).items())
-        print(followers)
-        print(friends)
+        self.__console[2].print(followers)
+        self.__console[2].print(friends)
 
         if follow:
             followed = followers - friends
-            print('Need to follow: {}'.format(followed))
+            self.__console[1].print('Need to follow: {}'.format(followed))
         else:
             followed = set()
 
         if unfollow:
             unfollowed = friends - followers
-            print('Need to unfollow: {}'.format(unfollowed))
+            self.__console[1].print('Need to unfollow: {}'.format(unfollowed))
         else:
             unfollowed = set()
 
         for user_id in followed:
             self.api.create_friendship(user_id)
+            self.__console.print(f'Followed {user_id}')
 
         for user_id in unfollowed:
             self.api.destroy_friendship(user_id)
+            self.__console.print(f'Unfollowed {user_id}')
 
         return followed, unfollowed
 
@@ -95,7 +102,7 @@ class TwitterClient(object):
                     'Updating twitter status ({}kb)...'.format(os.path.getsize(filename) // 1024),
                     'Updated status in {0:.3f}s'
             ):
-                self.api.update_with_media(filename, **kwargs)
+                result = self.api.update_with_media(filename, **kwargs)
         elif filename:
             filename = self._resize(filename)
 
@@ -103,11 +110,23 @@ class TwitterClient(object):
                 'Updating twitter status ({}kb)...'.format(os.path.getsize(filename) // 1024),
                 'Updated status in {0:.3f}s'
             ):
-                self.api.update_with_media(filename, **kwargs)
+                result = self.api.update_with_media(filename, **kwargs)
         elif status:
-            self.api.update_status(**kwargs)
+            result = self.api.update_status(**kwargs)
         else:
             raise RuntimeError('Tweet requires status or filename')
+
+        if result is not None:
+            self.__console.print(f'Posted tweet #{result.id_str}: "{result.text}"')
+            self.__console.print(f'https://twitter.com/{result.user.screen_name}/status/{result.id_str}')
+        return result
+
+    def poll(self, status: str, *choices: str):
+        card_uri = self.__card_api.create_poll(*choices)
+        result = self.api.update_status(status=status, card_uri=card_uri)
+        if result is not None:
+            self.__console.print(f'Posted tweet #{result.id_str}: "{result.text}"')
+            self.__console.print(f'https://twitter.com/{result.user.screen_name}/status/{result.id_str}')
 
     def _convert(self, filename, outname=OUT_FILENAME):
         if filename == outname:
