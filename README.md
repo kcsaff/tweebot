@@ -35,6 +35,9 @@ python main.py
 Configuration
 =============
 
+Key file
+--------
+
 The application will only try to tweet if you provide a key file,
 which is formatted like:
 
@@ -51,6 +54,16 @@ Note that Twitter also calls the consumer key the app's API key,
 and likewise the consumer secret is the app's API secret key.
 
 The filename must be provided using the ``--keys`` command-line argument.
+
+Header file
+-----------
+
+Certain Twitter features have poor API support so we need to fake them out. Currently
+this includes posting polls. To use these features, you must save a file containing request
+headers as recorded by your browser while posting under the account in a headers file.  This
+file will need headers like ``cookie``, ``authorization``, etc.
+
+The filename must be provided using the ``--headers`` command-line argument.
 
 Command-line usage
 ==================
