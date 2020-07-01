@@ -1,4 +1,5 @@
 import json
+from tweepy import OAuthHandler
 
 
 CONSUMER_KEY = "CONSUMER_KEY"
@@ -32,6 +33,7 @@ class TwitterKeys(object):
 
         (Or the equivalent in JSON)
         """
+        self.__auth = None
         if keys_filename is None:
             raise RuntimeError('No twitter keys registered, pipeline stopping')
         with open(keys_filename, 'r') as f:
@@ -57,3 +59,11 @@ class TwitterKeys(object):
 
         if missing:
             raise RuntimeError('I do not have all required keys')
+
+    @property
+    def auth(self):
+        if self.__auth is None:
+            self.__auth = OAuthHandler(self.CONSUMER_KEY, self.CONSUMER_SECRET)
+            self.__auth.set_access_token(self.ACCESS_KEY, self.ACCESS_SECRET)
+        return self.__auth
+

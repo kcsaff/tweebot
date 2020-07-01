@@ -25,14 +25,15 @@ class TwitterClient(object):
         self.__api = None
 
     @property
-    def api(self):
+    def api(self) -> tweepy.API:
+        """
+        Direct access to the internal tweepy API.
+        :return: Tweepy API object.
+        """
         if self.__api is None:
-            auth = tweepy.OAuthHandler(self.__keys.CONSUMER_KEY, self.__keys.CONSUMER_SECRET)
-            auth.set_access_token(self.__keys.ACCESS_KEY, self.__keys.ACCESS_SECRET)
-            api = tweepy.API(auth)
-            me = api.me()
+            self.__api = tweepy.API(self.__keys.auth)
+            me = self.__api.me()
             self.__console.print(f'Connected as @{me.screen_name}: "{me.name}"')
-            self.__api = api
         return self.__api
 
     def autofollow(self, follow: bool = True, unfollow: bool = True):
@@ -128,7 +129,7 @@ class TwitterClient(object):
             self.__console.print(f'Posted tweet #{result.id_str}: "{result.text}"')
             self.__console.print(f'https://twitter.com/{result.user.screen_name}/status/{result.id_str}')
 
-    def _convert(self, filename, outname=OUT_FILENAME):
+    def _convert(self, filename: str, outname: str=OUT_FILENAME) -> str:
         if filename == outname:
             return outname
 
@@ -143,7 +144,7 @@ class TwitterClient(object):
 
         return outname
 
-    def _resize(self, filename):
+    def _resize(self, filename: str) -> str:
         if not self.args or not self.args.magick:
             raise RuntimeError('No ImageMagick handler registered & it\'s required to resize! Pipeline stopping')
 
