@@ -1,16 +1,19 @@
 import os
 from setuptools import setup, find_packages
 
-version = '0.2.1'
+version = '1.0.0'
+
 
 def read(f):
     return open(os.path.join(os.path.dirname(__file__), f)).read().strip()
 
+
 try:
-   import pypandoc
-   description = pypandoc.convert('README.md', 'rst')
+    import pypandoc
+    description = pypandoc.convert('README.md', 'rst')
 except (IOError, ImportError):
-   description = read('README.md')
+    description = read('README.md')
+
 
 setup(name='tweebot',
       version=version,
@@ -33,5 +36,4 @@ setup(name='tweebot',
       entry_points={
           'console_scripts': ['tweebot = tweebot:main']
       },
-      include_package_data=False,
-)
+      include_package_data=False)
