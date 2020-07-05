@@ -53,7 +53,7 @@ def make_parser(parser=None, subparsers=None):
     poll_parser = subparsers.add_parser('poll', help='Tweet out a poll')
     _make_pipeline_parser(poll_parser, 'poll', status_nargs=1)
     poll_parser.add_argument(
-        'choices', type=str, nargs='+',
+        'choices', type=str, nargs='*',
         help='Poll choices'
     )
     poll_parser.set_defaults(handler=do_poll)

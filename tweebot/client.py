@@ -17,7 +17,12 @@ OUT_FILENAME = 'out.png'
 JPG_FILENAME = 'out{}.jpg'
 
 
+TWEET_LENGTH = 280
+
+
 class TwitterClient(object):
+    CHOICE_BEGIN = '* '
+
     def __init__(self, keys, console=None, headers=None):
         self.__console = Console.of(console)
         self.__keys = TwitterKeys.of(keys)
@@ -33,7 +38,7 @@ class TwitterClient(object):
         if self.__api is None:
             self.__api = tweepy.API(self.__keys.auth)
             me = self.__api.me()
-            self.__console.print(f'Connected as @{me.screen_name}: "{me.name}"')
+            self.__console.okay(f'Connected to twitter as @{me.screen_name}: "{me.name}"')
         return self.__api
 
     def autofollow(self, follow: bool = True, unfollow: bool = True):
@@ -51,28 +56,28 @@ class TwitterClient(object):
             return (), ()
         followers = set(tweepy.Cursor(self.api.followers_ids).items())
         friends = set(tweepy.Cursor(self.api.friends_ids).items())
-        self.__console[2].print(followers)
-        self.__console[2].print(friends)
+        self.__console[2].info(followers)
+        self.__console[2].info(friends)
 
         if follow:
             followed = followers - friends
-            self.__console[1].print('Need to follow: {}'.format(followed))
+            self.__console[1].info('Need to follow: {}'.format(followed))
         else:
             followed = set()
 
         if unfollow:
             unfollowed = friends - followers
-            self.__console[1].print('Need to unfollow: {}'.format(unfollowed))
+            self.__console[1].info('Need to unfollow: {}'.format(unfollowed))
         else:
             unfollowed = set()
 
         for user_id in followed:
             self.api.create_friendship(user_id)
-            self.__console.print(f'Followed {user_id}')
+            self.__console.okay(f'Followed {user_id}')
 
         for user_id in unfollowed:
             self.api.destroy_friendship(user_id)
-            self.__console.print(f'Unfollowed {user_id}')
+            self.__console.okay(f'Unfollowed {user_id}')
 
         return followed, unfollowed
 
@@ -117,17 +122,24 @@ class TwitterClient(object):
         else:
             raise RuntimeError('Tweet requires status or filename')
 
-        if result is not None:
-            self.__console.print(f'Posted tweet #{result.id_str}: "{result.text}"')
-            self.__console.print(f'https://twitter.com/{result.user.screen_name}/status/{result.id_str}')
+        self.__print_tweet_result(result)
         return result
 
     def poll(self, status: str, *choices: str):
+        if not choices:
+            status, choices = self.find_choices(status)
+        choices = [choice.strip()[:25] for choice in choices][:4]
+        if not choices:
+            raise RuntimeError('No poll options provided!')
+        status = status[:TWEET_LENGTH]
         card_uri = self.__card_api.create_poll(*choices)
         result = self.api.update_status(status=status, card_uri=card_uri)
+        self.__print_tweet_result(result)
+
+    def __print_tweet_result(self, result):
         if result is not None:
-            self.__console.print(f'Posted tweet #{result.id_str}: "{result.text}"')
-            self.__console.print(f'https://twitter.com/{result.user.screen_name}/status/{result.id_str}')
+            self.__console.okay(f'Posted tweet #{result.id_str}: "{result.text}"')
+            self.__console.okay(f'https://twitter.com/{result.user.screen_name}/status/{result.id_str}')
 
     def _convert(self, filename: str, outname: str=OUT_FILENAME) -> str:
         if filename == outname:
@@ -166,3 +178,16 @@ class TwitterClient(object):
                 file_size = os.path.getsize(filename)
 
         return filename
+
+    def find_choices(self, text: str):
+        lines = text.strip().splitlines(True)
+        choices = []
+        others = []
+        for line in reversed(lines):
+            if line.startswith(self.CHOICE_BEGIN) and not others:
+                choices.append(line[len(self.CHOICE_BEGIN):].strip())
+            else:
+                others.append(line)
+        text = ''.join(reversed(others)).strip()
+        choices = reversed(choices)
+        return text, choices

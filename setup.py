@@ -26,6 +26,7 @@ setup(name='tweebot',
       license='MIT',
       packages=find_packages(),
       install_requires=[
+          'colorama>=0.4.3',
           'requests>=2.24.0',
           'tweepy>=3.8.0'
       ],
